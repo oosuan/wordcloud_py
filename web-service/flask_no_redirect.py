@@ -4,6 +4,7 @@ from progressbar import progressbar
 import gc
 import codecs
 import os
+import json
 
 from pythainlp import word_tokenize,Tokenizer
 from pythainlp.corpus import thai_stopwords,thai_words
@@ -28,17 +29,22 @@ PEOPLE_FOLDER = os.path.join('static', 'wordcloud')
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = PEOPLE_FOLDER
 
-@app.route('/',methods=['GET','POST'])    
-def requests():
-    if request.method == 'POST':
-        return render(request.form.get('texts'))
-    else:
-        return render_template('upload.html')
+@app.route('/',methods=['GET'])    
+def index():
+    return render_template('upload.html')
 
-def render(texts):
-    print (texts)
-    texts = tok.word_tokenize(texts)
-    text2 = ' '.join(texts)
+@app.route('/render', methods=['GET'])
+def render():
+    print('===============')
+    print(request.get_data())
+    print('===============')
+    body = json.loads(request.get_data())
+    text = body['text']  # get texts input
+    print('===============')
+    print (text)
+    print('===============')
+    text = tok.word_tokenize(text)
+    text2 = ' '.join(text)
     text2 = text2.lower()
 
     wordcloud = WordCloud(stopwords = stop_words,
@@ -61,15 +67,21 @@ def render(texts):
     plt.imshow(wordcloud, cmap=plt.cm.gray, interpolation='bilinear')
     plt.axis("off")
 
-    wordcloud.to_file('static/wordcloud/wordcloud.png')
     full_filename = os.path.join(app.config['UPLOAD_FOLDER'], 'wordcloud.png')
+    wordcloud.to_file(full_filename)
     
-    @after_this_request
-    def cleanup(response):
-        os.remove('static/wordcloud/wordcloud.png')
-        return response
+    # @after_this_request
+    # def cleanup(response):
+    #     os.remove('static/wordcloud/wordcloud.png')
+    #     return response
 
-    return render_template("upload.html", wordcloud_image = full_filename)
+    return send_file(full_filename, mimetype='image/png')
+
+# @app.after_request
+# def cleanup(response):
+#     os.remove('static/wordcloud/wordcloud.png')
+#     return response
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
