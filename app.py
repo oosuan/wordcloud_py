@@ -1,8 +1,8 @@
-#import library ต่างๆทีเราใช้เข้ามา
+# import library ต่างๆ ทีเราใช้เข้ามา
 from pythainlp.corpus import thai_stopwords, thai_words
 from pythainlp import Tokenizer
 from wordcloud import WordCloud, STOPWORDS
-from flask import Flask, request,send_file, after_this_request
+from flask import Flask, request, send_file
 import json
 import gc
 import os
